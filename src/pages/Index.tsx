@@ -1,264 +1,261 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import DashboardPreview from '@/components/DashboardPreview';
+
+const HERO_IMG = 'https://cdn.poehali.dev/projects/9ce766f8-12b4-43ce-90b4-430145c569a7/files/501dec68-1f7f-4d00-b277-3cb3ec54527b.jpg';
 
 const NAV = [
-  { id: 'dashboard', label: 'Панель KPI', icon: 'LayoutDashboard' },
-  { id: 'demand', label: 'Прогноз спроса', icon: 'TrendingUp' },
-  { id: 'purchasing', label: 'Закупки и OCR', icon: 'ScanLine' },
-  { id: 'inventory', label: 'Склад и инвентарь', icon: 'Boxes' },
-  { id: 'voice', label: 'Голосовой ассистент', icon: 'Mic' },
+  { id: 'features', label: 'Возможности' },
+  { id: 'how', label: 'Как работает' },
+  { id: 'pricing', label: 'Тарифы' },
 ];
 
-const KPIS = [
-  { label: 'Выручка сегодня', value: '₽ 482 600', delta: '+12.4%', up: true, icon: 'Wallet' },
-  { label: 'Фуд-кост', value: '28.7%', delta: '−1.9%', up: true, icon: 'ChefHat' },
-  { label: 'Средний чек', value: '₽ 1 340', delta: '+5.1%', up: true, icon: 'Receipt' },
-  { label: 'Списания', value: '₽ 6 120', delta: '−34%', up: true, icon: 'Trash2' },
+const FEATURES = [
+  { icon: 'TrendingUp', title: 'Предиктивная аналитика спроса', text: 'Прогноз потока гостей и закупок с учётом погоды, городских событий, пробок и сезонных трендов. Минус списания и излишки.' },
+  { icon: 'ScanLine', title: 'OCR накладных', text: 'Компьютерное зрение мгновенно оцифровывает документы. Никакого ручного ввода — десятки сэкономленных часов в месяц.' },
+  { icon: 'Percent', title: 'Контроль фуд-коста', text: 'Себестоимость блюд пересчитывается в реальном времени. AI подсветит скачок цены и предложит выгодную альтернативу.' },
+  { icon: 'Mic', title: 'Голосовое управление', text: 'Выручка, остатки, смены, HR — аналитический срез по простой голосовой команде. Без сложных таблиц.' },
+  { icon: 'Boxes', title: 'Учёт остатков и склад', text: 'Прозрачный контроль инвентаря с автоматическим прогнозом дефицита и подсказками по дозаказу.' },
+  { icon: 'BellRing', title: 'Умные оповещения', text: 'Сигналы при аномалиях цен поставщиков и рисках дефицита товара — раньше, чем проблема ударит по прибыли.' },
 ];
 
-const REVENUE = [38, 52, 47, 63, 58, 71, 66, 82, 76, 91, 85, 97];
-const FORECAST = [97, 88, 79, 84, 92, 100];
-
-const ALERTS = [
-  { icon: 'TrendingUp', tone: 'warning', title: 'Аномалия цены', text: 'Лосось у «МореТрейд» вырос на +22%. Найдено 2 альтернативы дешевле.' },
-  { icon: 'CloudRain', tone: 'primary', title: 'Прогноз спроса', text: 'Дождь в выходные → +18% к доставке. Рекомендуем дозаказ упаковки.' },
-  { icon: 'PackageX', tone: 'destructive', title: 'Риск дефицита', text: 'Моцарелла закончится через 2 дня при текущем темпе продаж.' },
+const STEPS = [
+  { n: '01', title: 'Подключаем данные', text: 'Загружаем историю продаж, накладные и подключаем внешние источники: погода, события, поставщики.' },
+  { n: '02', title: 'AI анализирует', text: 'Движок прогнозирует спрос, считает фуд-кост и находит аномалии в режиме реального времени.' },
+  { n: '03', title: 'Получаете прибыль', text: 'Готовые сценарии оптимизации вместо констатации убытков. Вы фокусируетесь на гостях и сервисе.' },
 ];
 
-const INVOICES = [
-  { supplier: 'МореТрейд', sum: '₽ 84 200', items: 14, status: 'Распознано', ok: true },
-  { supplier: 'ФрешОвощ', sum: '₽ 31 750', items: 22, status: 'Распознано', ok: true },
-  { supplier: 'МилкоПром', sum: '₽ 19 400', items: 8, status: 'Проверка', ok: false },
+const PLANS = [
+  {
+    name: 'SCOUT', tagline: 'Контроль ключевых метрик', price: '4 900', icon: 'Compass', popular: false,
+    features: ['Главная панель KPI', 'Учёт остатков и склад', 'Базовая автоматизация рутины', 'OCR до 100 накладных/мес'],
+  },
+  {
+    name: 'WARRIOR', tagline: 'Предиктивная аналитика', price: '9 900', icon: 'Swords', popular: true,
+    features: ['Всё из SCOUT', 'Прогноз спроса (погода + события)', 'Глубокий контроль фуд-коста', 'Умные оповещения об аномалиях', 'OCR без ограничений'],
+  },
+  {
+    name: 'TITAN', tagline: 'Полное AI-сопровождение', price: '19 900', icon: 'Crown', popular: false,
+    features: ['Всё из WARRIOR', 'Голосовое управление', 'Интеграция с поставщиками', 'Сквозная интеграция систем', 'Персональный AI-управляющий'],
+  },
 ];
-
-const STOCK = [
-  { name: 'Сёмга филе', level: 82, unit: '14 кг' },
-  { name: 'Моцарелла', level: 18, unit: '2.1 кг' },
-  { name: 'Томаты', level: 64, unit: '9 кг' },
-  { name: 'Оливковое масло', level: 47, unit: '6 л' },
-];
-
-const toneMap: Record<string, string> = {
-  primary: 'text-primary bg-primary/10 border-primary/20',
-  warning: 'text-warning bg-warning/10 border-warning/20',
-  destructive: 'text-destructive bg-destructive/10 border-destructive/20',
-};
-
-function Sparkline({ data, color = 'hsl(var(--primary))', dashed = false }: { data: number[]; color?: string; dashed?: boolean }) {
-  const w = 300;
-  const h = 90;
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / (max - min || 1)) * (h - 12) - 6;
-    return [x, y];
-  });
-  const line = pts.map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`)).join(' ');
-  const area = `${line} L ${w} ${h} L 0 ${h} Z`;
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={dashed ? 'g2' : 'g1'} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {!dashed && <path d={area} fill={`url(#g1)`} />}
-      <path d={line} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round"
-        strokeDasharray={dashed ? '6 7' : undefined} className={dashed ? '' : 'draw-line'} />
-      {dashed && pts.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={color} />)}
-    </svg>
-  );
-}
 
 const Index = () => {
-  const [active, setActive] = useState('dashboard');
+  const [menu, setMenu] = useState(false);
+  const scrollTo = (id: string) => {
+    setMenu(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
-      {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border bg-card/40 backdrop-blur sticky top-0 h-screen">
-        <div className="px-6 py-6 flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground grid place-items-center font-bold glow">
-            <Icon name="Activity" size={20} />
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground grid place-items-center glow">
+              <Icon name="Activity" size={20} />
+            </div>
+            <span className="font-extrabold tracking-tight text-lg">Контроль<span className="text-primary">+</span></span>
           </div>
-          <div>
-            <div className="font-extrabold tracking-tight leading-none text-[17px]">Контроль<span className="text-primary">+</span></div>
-            <div className="text-[10px] text-muted-foreground tracking-widest uppercase mt-0.5">AI Autopilot</div>
-          </div>
-        </div>
-        <nav className="px-3 mt-2 flex flex-col gap-1">
-          {NAV.map((n) => (
-            <button key={n.id} onClick={() => setActive(n.id)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                active === n.id ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-              }`}>
-              <Icon name={n.icon} size={18} />
-              {n.label}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+            {NAV.map((n) => (
+              <button key={n.id} onClick={() => scrollTo(n.id)} className="hover:text-foreground transition-colors">{n.label}</button>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3">
+            <button onClick={() => scrollTo('pricing')} className="hidden sm:inline-flex px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition glow">
+              Начать бесплатно
             </button>
-          ))}
-        </nav>
-        <div className="mt-auto m-3 p-4 rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/10 to-transparent">
-          <div className="text-xs font-mono text-primary mb-1">TITAN</div>
-          <div className="text-sm font-semibold mb-2">Полное AI-сопровождение</div>
-          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition">
-            Активировать
-          </button>
+            <button onClick={() => setMenu(!menu)} className="md:hidden w-9 h-9 grid place-items-center rounded-lg bg-secondary">
+              <Icon name={menu ? 'X' : 'Menu'} size={18} />
+            </button>
+          </div>
         </div>
-      </aside>
+        {menu && (
+          <div className="md:hidden border-t border-border px-5 py-4 flex flex-col gap-3 animate-fade-up">
+            {NAV.map((n) => (
+              <button key={n.id} onClick={() => scrollTo(n.id)} className="text-left text-sm font-medium text-muted-foreground">{n.label}</button>
+            ))}
+            <button onClick={() => scrollTo('pricing')} className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">Начать бесплатно</button>
+          </div>
+        )}
+      </header>
 
-      {/* Main */}
-      <main className="flex-1 min-w-0">
-        {/* Topbar */}
-        <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur px-5 sm:px-8 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg sm:text-xl font-extrabold tracking-tight">Ресторан «Бавария», ул. Ленина 12</h1>
-            <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={HERO_IMG} alt="" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/85 to-background" />
+          <div className="grid-bg absolute inset-0 opacity-[0.15]" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-16 sm:pt-28 sm:pb-24">
+          <div className="max-w-3xl">
+            <div className="animate-fade-up inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-medium mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-primary live-dot" />
-              <span className="font-mono">Данные в реальном времени · {new Date().toLocaleDateString('ru-RU')}</span>
+              Интеллектуальный автопилот для ресторанов
+            </div>
+            <h1 className="animate-fade-up text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6" style={{ animationDelay: '80ms' }}>
+              Превращаем операционную рутину
+              <span className="block text-primary text-glow">в чистую прибыль</span>
+            </h1>
+            <p className="animate-fade-up text-lg text-muted-foreground leading-relaxed mb-8 max-w-2xl" style={{ animationDelay: '160ms' }}>
+              «Контроль+» — это AI-управляющий, который прогнозирует спрос, держит фуд-кост под контролем и сам находит выгодных поставщиков. Не констатация убытков постфактум — а готовые сценарии оптимизации.
+            </p>
+            <div className="animate-fade-up flex flex-col sm:flex-row gap-3" style={{ animationDelay: '240ms' }}>
+              <button onClick={() => scrollTo('pricing')} className="px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold hover:opacity-90 transition glow flex items-center justify-center gap-2">
+                Попробовать 14 дней бесплатно <Icon name="ArrowRight" size={18} />
+              </button>
+              <button onClick={() => scrollTo('how')} className="px-6 py-3.5 rounded-xl bg-secondary font-semibold hover:bg-muted transition flex items-center justify-center gap-2">
+                <Icon name="PlayCircle" size={18} /> Как это работает
+              </button>
+            </div>
+            <div className="animate-fade-up flex flex-wrap items-center gap-x-8 gap-y-2 mt-8 text-sm text-muted-foreground" style={{ animationDelay: '320ms' }}>
+              <span className="flex items-center gap-2"><Icon name="Check" size={16} className="text-primary" /> Без карты</span>
+              <span className="flex items-center gap-2"><Icon name="Check" size={16} className="text-primary" /> Настройка за 1 день</span>
+              <span className="flex items-center gap-2"><Icon name="Award" size={16} className="text-primary" /> 3-е место Олимпиады в Тюмени</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-secondary text-sm font-medium hover:bg-muted transition">
-              <Icon name="Mic" size={16} className="text-primary" /> Спросить
-            </button>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent grid place-items-center text-sm font-bold text-primary-foreground">А</div>
-          </div>
-        </header>
 
-        <div className="p-5 sm:p-8 space-y-6 max-w-[1400px]">
-          {/* KPI grid */}
-          <section className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {KPIS.map((k, i) => (
-              <div key={k.label} className="animate-fade-up rounded-2xl border border-border bg-card p-5 hover:border-primary/30 transition-colors"
-                style={{ animationDelay: `${i * 80}ms` }}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-9 h-9 rounded-lg bg-secondary grid place-items-center text-muted-foreground">
-                    <Icon name={k.icon} size={18} />
-                  </div>
-                  <span className={`text-xs font-mono font-semibold px-2 py-1 rounded-md ${k.up ? 'text-primary bg-primary/10' : 'text-destructive bg-destructive/10'}`}>
-                    {k.delta}
-                  </span>
-                </div>
-                <div className="text-2xl font-extrabold tracking-tight font-mono">{k.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{k.label}</div>
+          <div className="animate-fade-up mt-16" style={{ animationDelay: '400ms' }}>
+            <DashboardPreview />
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="border-y border-border bg-card/30">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            { v: '−34%', l: 'списаний продуктов' },
+            { v: '+18%', l: 'точность прогноза спроса' },
+            { v: '40 ч', l: 'экономии в месяц на учёте' },
+            { v: '24/7', l: 'контроль в реальном времени' },
+          ].map((s) => (
+            <div key={s.l} className="text-center">
+              <div className="text-3xl sm:text-4xl font-extrabold font-mono text-primary text-glow">{s.v}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div className="max-w-2xl mb-14">
+          <span className="text-primary text-sm font-semibold font-mono tracking-widest uppercase">Возможности</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Один AI вместо целого отдела аналитики</h2>
+          <p className="text-muted-foreground text-lg">Классические POS лишь фиксируют данные. «Контроль+» думает за вас и действует на опережение.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {FEATURES.map((f, i) => (
+            <div key={f.title} className="group rounded-2xl border border-border bg-card p-6 hover:border-primary/40 transition-all hover:-translate-y-1">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary grid place-items-center mb-5 group-hover:scale-110 transition-transform">
+                <Icon name={f.icon} size={24} />
+              </div>
+              <h3 className="font-bold text-lg mb-2">{f.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{f.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how" className="border-y border-border bg-card/30">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-primary text-sm font-semibold font-mono tracking-widest uppercase">Как работает</span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3">Запуск за 3 шага</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {STEPS.map((s) => (
+              <div key={s.n} className="relative rounded-2xl border border-border bg-card p-7">
+                <div className="text-5xl font-extrabold font-mono text-primary/20 mb-4">{s.n}</div>
+                <h3 className="font-bold text-xl mb-2">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{s.text}</p>
               </div>
             ))}
-          </section>
-
-          {/* Charts row */}
-          <section className="grid lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 animate-fade-up rounded-2xl border border-border bg-card p-6" style={{ animationDelay: '160ms' }}>
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h2 className="font-bold">Выручка · 12 недель</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Динамика продаж с прогнозом</p>
-                </div>
-                <div className="flex gap-1 text-xs">
-                  {['День', 'Неделя', 'Месяц'].map((t, i) => (
-                    <button key={t} className={`px-3 py-1.5 rounded-lg font-medium ${i === 1 ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{t}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="h-44"><Sparkline data={REVENUE} /></div>
-            </div>
-
-            <div className="animate-fade-up rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.06] to-card p-6 relative overflow-hidden" style={{ animationDelay: '220ms' }}>
-              <div className="grid-bg absolute inset-0 opacity-30" />
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon name="Sparkles" size={16} className="text-primary" />
-                  <h2 className="font-bold">Прогноз спроса</h2>
-                </div>
-                <p className="text-xs text-muted-foreground mb-4">Учтены погода, события, пробки</p>
-                <div className="text-3xl font-extrabold font-mono text-primary text-glow">+18.5%</div>
-                <p className="text-xs text-muted-foreground mb-4">ожидаемый рост на выходных</p>
-                <div className="h-20"><Sparkline data={FORECAST} dashed /></div>
-                <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-                  <Icon name="CloudRain" size={14} /> Дождь
-                  <Icon name="Music" size={14} className="ml-2" /> Концерт рядом
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Alerts + Invoices */}
-          <section className="grid lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-1 animate-fade-up rounded-2xl border border-border bg-card p-6" style={{ animationDelay: '260ms' }}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold flex items-center gap-2"><Icon name="BellRing" size={18} className="text-warning" /> Умные оповещения</h2>
-                <span className="text-xs font-mono text-muted-foreground">3 новых</span>
-              </div>
-              <div className="space-y-3">
-                {ALERTS.map((a) => (
-                  <div key={a.title} className={`rounded-xl border p-3.5 ${toneMap[a.tone]}`}>
-                    <div className="flex items-center gap-2 font-semibold text-sm mb-1">
-                      <Icon name={a.icon} size={15} /> {a.title}
-                    </div>
-                    <p className="text-xs text-foreground/70 leading-relaxed">{a.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 animate-fade-up rounded-2xl border border-border bg-card p-6" style={{ animationDelay: '300ms' }}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold flex items-center gap-2"><Icon name="ScanLine" size={18} className="text-primary" /> Накладные · OCR-распознавание</h2>
-                <button className="text-xs font-medium text-primary flex items-center gap-1 hover:gap-2 transition-all">
-                  Загрузить <Icon name="Upload" size={14} />
-                </button>
-              </div>
-              <div className="space-y-2">
-                {INVOICES.map((inv) => (
-                  <div key={inv.supplier} className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary/60 transition border border-transparent hover:border-border">
-                    <div className="w-10 h-10 rounded-lg bg-secondary grid place-items-center text-muted-foreground shrink-0">
-                      <Icon name="FileText" size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-sm truncate">{inv.supplier}</div>
-                      <div className="text-xs text-muted-foreground font-mono">{inv.items} позиций</div>
-                    </div>
-                    <div className="font-mono font-bold text-sm">{inv.sum}</div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-md shrink-0 ${inv.ok ? 'text-primary bg-primary/10' : 'text-warning bg-warning/10'}`}>
-                      {inv.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Stock */}
-          <section className="animate-fade-up rounded-2xl border border-border bg-card p-6" style={{ animationDelay: '340ms' }}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold flex items-center gap-2"><Icon name="Boxes" size={18} /> Остатки на складе</h2>
-              <span className="text-xs text-muted-foreground font-mono">Обновлено только что</span>
-            </div>
-            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
-              {STOCK.map((s) => {
-                const low = s.level < 25;
-                return (
-                  <div key={s.name}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">{s.name}</span>
-                      <span className="text-xs font-mono text-muted-foreground">{s.unit}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                      <div className={`h-full rounded-full ${low ? 'bg-destructive' : 'bg-primary'}`} style={{ width: `${s.level}%` }} />
-                    </div>
-                    {low && <div className="text-[11px] text-destructive mt-1.5 flex items-center gap-1"><Icon name="AlertTriangle" size={11} /> Скоро закончится</div>}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <p className="text-center text-xs text-muted-foreground pt-2">
-            Контроль<span className="text-primary">+</span> · Эволюция ресторанного менеджмента в чистую прибыль · 3-е место на Олимпиаде по предпринимательству в Тюмени
-          </p>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="max-w-6xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <span className="text-primary text-sm font-semibold font-mono tracking-widest uppercase">Тарифы</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mt-3 mb-4">Гибкий SaaS под любой масштаб</h2>
+          <p className="text-muted-foreground text-lg">От локальной кофейни до крупной ресторанной сети. Первые 14 дней — бесплатно.</p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6 items-start">
+          {PLANS.map((p) => (
+            <div key={p.name} className={`relative rounded-2xl border p-7 transition-all ${
+              p.popular ? 'border-primary bg-gradient-to-b from-primary/[0.08] to-card glow md:-translate-y-3' : 'border-border bg-card hover:border-primary/30'
+            }`}>
+              {p.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                  Выбор рестораторов
+                </div>
+              )}
+              <div className="flex items-center gap-2.5 mb-1">
+                <div className={`w-9 h-9 rounded-lg grid place-items-center ${p.popular ? 'bg-primary text-primary-foreground' : 'bg-secondary text-primary'}`}>
+                  <Icon name={p.icon} size={18} />
+                </div>
+                <span className="font-extrabold text-lg tracking-tight font-mono">{p.name}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-5">{p.tagline}</p>
+              <div className="flex items-end gap-1 mb-6">
+                <span className="text-4xl font-extrabold font-mono">₽{p.price}</span>
+                <span className="text-muted-foreground text-sm mb-1.5">/ мес</span>
+              </div>
+              <button onClick={() => scrollTo('pricing')} className={`w-full py-3 rounded-xl font-semibold transition mb-6 ${
+                p.popular ? 'bg-primary text-primary-foreground hover:opacity-90' : 'bg-secondary hover:bg-muted'
+              }`}>
+                Подключить {p.name}
+              </button>
+              <ul className="space-y-3">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm">
+                    <Icon name="Check" size={16} className="text-primary mt-0.5 shrink-0" />
+                    <span className="text-foreground/80">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 pb-20 sm:pb-28">
+        <div className="relative rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/[0.12] via-card to-card p-10 sm:p-16 text-center overflow-hidden">
+          <div className="grid-bg absolute inset-0 opacity-20" />
+          <div className="relative">
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 max-w-3xl mx-auto leading-tight">
+              Сфокусируйтесь на вкусе.<br />Рутину возьмёт <span className="text-primary text-glow">искусственный интеллект</span>
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
+              Присоединяйтесь к ресторанам, которые превращают расходы в прибыль с «Контроль+».
+            </p>
+            <button onClick={() => scrollTo('pricing')} className="px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:opacity-90 transition glow inline-flex items-center gap-2">
+              Начать бесплатно <Icon name="ArrowRight" size={20} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground grid place-items-center">
+              <Icon name="Activity" size={16} />
+            </div>
+            <span className="font-extrabold tracking-tight">Контроль<span className="text-primary">+</span></span>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">Эволюция ресторанного менеджмента в чистую прибыль</p>
+          <p className="text-xs text-muted-foreground font-mono">© {new Date().getFullYear()} Control+</p>
+        </div>
+      </footer>
     </div>
   );
 };
