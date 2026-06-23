@@ -27,15 +27,15 @@ const STEPS = [
 
 const PLANS = [
   {
-    name: 'SCOUT', tagline: 'Контроль ключевых метрик', price: '4 900', icon: 'Compass', popular: false,
+    name: 'SCOUT', tagline: 'Контроль ключевых метрик', price: '7 990', icon: 'Compass', popular: false,
     features: ['Главная панель KPI', 'Учёт остатков и склад', 'Базовая автоматизация рутины', 'OCR до 100 накладных/мес'],
   },
   {
-    name: 'WARRIOR', tagline: 'Предиктивная аналитика', price: '9 900', icon: 'Swords', popular: true,
+    name: 'WARRIOR', tagline: 'Предиктивная аналитика', price: '7 990', icon: 'Swords', popular: true,
     features: ['Всё из SCOUT', 'Прогноз спроса (погода + события)', 'Глубокий контроль фуд-коста', 'Умные оповещения об аномалиях', 'OCR без ограничений'],
   },
   {
-    name: 'TITAN', tagline: 'Полное AI-сопровождение', price: '19 900', icon: 'Crown', popular: false,
+    name: 'TITAN', tagline: 'Полное AI-сопровождение', price: '7 990', icon: 'Crown', popular: false,
     features: ['Всё из WARRIOR', 'Голосовое управление', 'Интеграция с поставщиками', 'Сквозная интеграция систем', 'Персональный AI-управляющий'],
   },
 ];
